@@ -1,0 +1,107 @@
+***STANDARDIZING ERRORS AND STATUS CODES***
+-Before we start design our API endpoints, we need to create a standard for returning error messages and what status codes are being used.
+-For validation errors that need to be sent back to the client, we'll use status code 422 and errors in the following format: 
+{
+	"errors":{
+		"body":[
+			"Can't be empty"		
+		]
+	}
+}
+-We need to have the errors keyed by the field name to allow the frontend to highlight the specific field that is breaking.
+-Other status codes:
+-401 for unauthorized requests, when a request requires authentication but it isn't provided
+-403 for forbiddend request, when a request may be valid but the user doesn't have permissions to perform the action
+-404 for Not Found requests, when a resource can't be found to fulfill the request
+
+
+***AUTHENTICATION***
+-In the Conduit application, a user has a username, image, bio, email and a password. We shouldn't ever return a password from the server, but the other fields (plus their JWT token) should be returned.
+-Let's create a desired object to represent the user's data. This data is what will be returned from successful logins, registrations, and requests for the currently logged in user's information.
+{
+	"user": {
+	  "email": "jake@jake.jake",
+	  "token": "jwt.token.here",
+	  "username": "jake",
+	  "bio": "I work at statefarm",
+	  "image": null
+  	}
+}
+
+-If the user doesn't have an image set it will be returned as null. Otherwise, it will be returned as a link (ex: "image": "https://hello.com/cool.jpg")
+
+***REGISTRATION***
+-To register, we require an email, password, and desired username:
+-POST /api/users
+{
+ 	"user":{
+		"username": "Jacob"
+	  	"email": "jake@jake.jake",
+	  	"password": "jakejake"
+  	}
+}
+
+***LOGIN***
+-To login, we only require an email and password:
+-POST /api/users/login
+{
+ 	"user":{
+  		"email": "jake@jake.jake",
+  		"password": "jakejake"
+ 	}
+}
+
+***MAKING AUTHORIZED REQUESTS***
+-Any time you're interacting with endpoints that require knowledge of the current user, you'll need to pass along an authentication header:
+-Authorization: Token jwt.token.here
+-This functionality is needed on the login/register pages, the edit profile page, as well as retrieving the user's information when the user hits the page on a hard load.
+
+***GETTING AND SETTING USER DATA***
+-Now that users can create and login to their accounts, we need a way to retrieve their current data as well as update it.
+
+-To get the current user's info. Required authentication token.
+-GET /api/user
+-Returns a User object
+
+-Updating the current user's data
+-Update to bio, pic, name, etc
+-PUT /api/user
+-Authentication required, returns the updated User object
+{
+  "user":{
+    "email": "jake@jake.jake",
+    "bio": "I like to skateboard",
+    "image": "https://i.stack.imgur.com/xHWG8.jpg"
+  }
+}
+-Accepted fields: email, username, password, image, bio
+
+
+***SHOWING PUBLIC USER DATA FOR PROFILES***
+-What if we want to view the profile of another user on our site? We don't want to expose their email nor allow others to change their password, which is why those API endpoints are private. We'll need to
+-create API endpoints that will only expose public data about the user.
+
+-First we'll need to create a new object for Profiles:
+{
+	"profile": {
+		"username": "jake",
+		"bio": "I work at statefarm",
+		"image": "https://static.productionready.io/images/smiley-cyrus.jpg",
+		"following": false
+  	}
+}
+
+
+***GETTING A USER'S PUBLIC PROFILE***
+-GET /api/profiles/:username
+-Authentication optional, returns a Profile
+-The other actions we can do with a profile is to follow and unfollow it.
+
+***FOLLOW A USER***
+-POST /api/profiles/:username/follow
+-Authentication required, returns a Profile No additional parameters required
+
+***UNFOLLOW A USER***
+-DELETE /api/profiles/:username/follow
+-Authentication required, returns a Profile No additional parameters required
+
