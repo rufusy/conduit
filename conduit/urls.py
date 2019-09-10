@@ -18,5 +18,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('api/', include('conduit.apps.authentication.urls', namespace='authentication')),
+    path('api/', include('conduit.apps.profiles.urls', namespace='profiles')),
     path('admin/', admin.site.urls),
 ]
